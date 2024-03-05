@@ -28,7 +28,7 @@
         </activity>
 
         <service
-            android:name=".Recording.RecordingService"
+            android:name="me.t3sl4.audiohandler.Recording.RecordingService"
             android:enabled="true"
             android:foregroundServiceType="mediaProjection"
             android:exported="false"/>

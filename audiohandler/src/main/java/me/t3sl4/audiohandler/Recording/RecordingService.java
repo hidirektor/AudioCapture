@@ -1,11 +1,10 @@
-package me.t3sl4.audiocapture.Recording;
+package me.t3sl4.audiohandler.Recording;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -39,17 +38,14 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import static me.t3sl4.audiocapture.MainActivity.BROADCAST_EXTRA_DATA;
-import static me.t3sl4.audiocapture.MainActivity.BROADCAST_WAVEFORM;
-
-import me.t3sl4.audiocapture.MainActivity;
-import me.t3sl4.audiocapture.R;
+import static me.t3sl4.audiohandler.AudioHandler.BROADCAST_EXTRA_DATA;
+import static me.t3sl4.audiohandler.AudioHandler.BROADCAST_WAVEFORM;
 
 public class RecordingService extends Service {
     public static final String NOTIFICATION_CHANNEL_RECORDING = "channel_recording";
     public static final int NOTIFICATION_ID = 1000;
 
-    public final static String ACTION_STOP = "me.t3sl4.audiocapture.stop";
+    public final static String ACTION_STOP = "me.t3sl4.audiohandler.stop";
     private final static int REQUEST_STOP = 1;
     private final static int REQUEST_OPEN_ACTIVITY = 2;
 
@@ -126,13 +122,14 @@ public class RecordingService extends Service {
         data = (Intent) parcelableExtra;
         code = intent.getIntExtra(EXTRA_CODE, 114);
 
-        final Notification notification = createNotification();
+        //final Notification notification = createNotification();
+        final Notification notification = new Notification();
         startForeground(NOTIFICATION_ID, notification);
         startRecording();
         return START_STICKY;
     }
 
-    private Notification createNotification() {
+    /*private Notification createNotification() {
         final Intent parentIntent = new Intent(this, MainActivity.class);
         parentIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         final Intent targetIntent = new Intent(this, MainActivity.class);
@@ -146,13 +143,13 @@ public class RecordingService extends Service {
         builder.setContentIntent(pendingIntent);
         builder.setPriority(NotificationCompat.PRIORITY_MAX);
         builder.setContentTitle("Audio Recording").setContentText("Recording is in progress!");
-        builder.setSmallIcon(R.drawable.ic_notifcation_record);
-        builder.setColor(ContextCompat.getColor(this, R.color.colorRecording));
-        builder.setOnlyAlertOnce(true).setShowWhen(true).setDefaults(0).setAutoCancel(true).setOngoing(true);
-        builder.addAction(new NotificationCompat.Action(R.drawable.ic_notifcation_stop, "Stop Recording", disconnectAction));
+        //builder.setSmallIcon(R.drawable.ic_notifcation_record);
+        //builder.setColor(ContextCompat.getColor(this, R.color.colorRecording));
+        //builder.setOnlyAlertOnce(true).setShowWhen(true).setDefaults(0).setAutoCancel(true).setOngoing(true);
+        //builder.addAction(new NotificationCompat.Action(R.drawable.ic_notifcation_stop, "Stop Recording", disconnectAction));
 
         return builder.build();
-    }
+    }*/
 
     @SuppressLint("NewApi")
     @TargetApi(Build.VERSION_CODES.O)
@@ -184,7 +181,7 @@ public class RecordingService extends Service {
 
         run = true;
         new Thread(() -> {
-            // Run whatever background code you want here.
+            // bakcground
             try {
                 saveFile();
             } catch (IOException e) {
@@ -219,26 +216,12 @@ public class RecordingService extends Service {
 
         Log.d("test", "files created: " + wavFile.getAbsolutePath());
         FileOutputStream wavOut = new FileOutputStream(wavFile);
-        // Write out the wav file header
         writeWavHeader(wavOut, AUDIO_CHANNEL_MASK, AUDIO_SAMPLE_RATE, AUDIO_ENCODING);
 
         while (run) {
             read = audioRecord.read(buffer, 0, buffer.length);
 
             sendAudioData(buffer, read);
-
-            // WAVs cannot be > 4 GB due to the use of 32 bit unsigned integers.
-            /*if (total + read > 4294967295L) {
-                // Write as many bytes as we can before hitting the max size
-                for (int i = 0; i < read && total <= 4294967295L; i++, total++) {
-                    wavOut.write(buffer[i]);
-                }
-                run = false;
-            } else {
-                // Write out the entire read buffer
-                wavOut.write(buffer, 0, read);
-                total += read;
-            }*/
         }
         try {
             wavOut.close();

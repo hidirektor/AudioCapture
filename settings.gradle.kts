@@ -15,4 +15,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "AudioCapture"
 include(":app")
- 
+include(":audiohandler")
+
